@@ -55,17 +55,100 @@ ratu_fig
 
 -----------------------------------------------------------------------
 
-### ASHI
+### RKI.
 
 ```{r}
+library(tidyverse)
+#Muodostetaan data
+rki <- read.csv(url("https://pxdata.stat.fi:443/PxWeb/sq/5c18667a-b657-4646-b0bc-a0697241ece2"), skip=3, header=F)
+#colnames(rki)
+#Rename
+rki<- rki %>%  rename(tilastokuukausi = V1) %>%
+    rename(rki_kokonaisindeksi=V2) %>%
+    rename(rki_tyopanokset=V3) %>%
+    rename(rki_tarvikepanokset=V4) %>%
+    rename(rki_palvelut=V5)
+
+#Piirretään kuva
+  rki_fig <- plot_ly(rki, type = 'scatter', mode = 'lines')%>%
+  add_trace(x = ~tilastokuukausi, y = ~rki_kokonaisindeksi, name = 'Kokonaisindeksi')%>%
+  add_trace(x = ~tilastokuukausi, y = ~rki_tyopanokset, name = 'Tyopanokset')%>%
+  add_trace(x = ~tilastokuukausi, y = ~rki_tarvikepanokset, name = 'Tarvikepanokset')%>%
+  add_trace(x = ~tilastokuukausi, y = ~rki_palvelut, name = 'Palvelut')%>%
+  layout(title = list(text = "Rakennuskustannusindeksi", y = 0.9, x=0.1),
+         legend=list(title=list(text='Kustannuslaji')))
+options(warn = -1)
+rki_fig <- rki_fig %>%
+  layout(
+    xaxis = list(title=F, zerolinecolor = '#ffff',
+                 zerolinewidth = 2,
+                 gridcolor = '#ffffff'),
+    yaxis = list(title='Indeksipisteluku',zerolinecolor = '#ffff',
+                 zerolinewidth = 2,
+                 gridcolor = '#ffffff'),
+    plot_bgcolor='#e6f7ff')
+
+
+rki_fig
 
 
 ```
 
 
-### RKI.
+### RKI&Rakennustuotanto
+```{r}
+#Yhdistetään RKI ja ratu samaan kuvioon
+library(lubridate)
+ratu2010<-ratu
+#lisataan date, year & month -muuttujat
+ratu2010$date<-ym(ratu$Kuukausi)
+ratu2010$year<-year(ratu2010$date)
+ratu2010 <- mutate(ratu2010,month=month(ratu2010$date))
+#Rajataan sama aikajakso kuin RKI on saatavilla
+ratu2010=filter(ratu2010, year>2009)
+#luodaan indeksit rakennusluville
+ratu2010<-ratu2010 %>% 
+  mutate(ratu_indeksi_kerrostalot=avg_kerrostalot/ratu2010[1,"avg_kerrostalot"]*100) %>% 
+  mutate(ratu_indeksi_pientalot=avg_pientalot/ratu2010[1,"avg_pientalot"]*100)
+
+
+rkiratu <-merge(ratu2010, rki, by.x="Kuukausi", by.y="tilastokuukausi")
+
+
+#Piirretään kuva
+  rkiratu_fig <- plot_ly(rkiratu, type = 'scatter', mode = 'lines')%>%
+  add_trace(x = ~date, y = ~rki_kokonaisindeksi, name = 'RKI Kokonaisindeksi')%>%
+  add_trace(x = ~date, y = ~rki_tyopanokset, name = 'RKI Tyopanokset')%>%
+  add_trace(x = ~date, y = ~rki_tarvikepanokset, name = 'RKI Tarvikepanokset')%>%
+  add_trace(x = ~date, y = ~rki_palvelut, name = 'RKI Palvelut')%>%
+  add_trace(x = ~date, y = ~ratu_indeksi_kerrostalot, name = 'RATU Kerrostaloasunnot')%>%
+  add_trace(x = ~date, y = ~ratu_indeksi_pientalot, name = 'RATU Pientaloasunnot')%>%
+  layout(title = list(text = "Rakennuskustannusindeksi", y = 0.9, x=0.1),
+         legend=list(title=list(text='Kustannuslaji')))
+options(warn = -1)
+rkiratu_fig <- rkiratu_fig %>%
+  layout(
+    xaxis = list(title=F, zerolinecolor = '#ffff',
+                 zerolinewidth = 2,
+                 gridcolor = '#ffffff'),
+    yaxis = list(title='Indeksipisteluku',zerolinecolor = '#ffff',
+                 zerolinewidth = 2,
+                 gridcolor = '#ffffff'),
+    plot_bgcolor='#e6f7ff')
+
+
+rkiratu_fig
+
+```
+
+
+-----------------------------------------------------------------------
+
+### ASHI
 
 ```{r}
+
+
 ```
 
 
