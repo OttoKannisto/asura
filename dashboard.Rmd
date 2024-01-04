@@ -7,7 +7,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-
+#moi
 #Ladataan tarvittavat paketit
 library(plotly)
 library(dplyr)
